@@ -1,0 +1,15 @@
+.env
+__pycache__/
+*.pyc
+data/*.db
+data/uploads/*
+!data/uploads/.gitkeep
+*.log
+.DS_Store
+graphify-out/
+.xray-backups/
+.pytest_cache/
+.coverage
+htmlcov/
+playwright-report/
+test-results/

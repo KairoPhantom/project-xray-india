@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Connector Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "owner",
+    "base_urls",
+    "rate_policy",
+    "terms_status",
+    "identifiers",
+    "kill_switch"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "base_urls": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "rate_policy": {
+      "type": "string"
+    },
+    "terms_status": {
+      "enum": [
+        "unreviewed",
+        "reviewed_allowed",
+        "reviewed_restricted",
+        "blocked"
+      ]
+    },
+    "identifiers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expected_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "kill_switch": {
+      "type": "boolean"
+    },
+    "last_verified_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  }
+}

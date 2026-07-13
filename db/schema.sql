@@ -1,0 +1,10 @@
+PRAGMA foreign_keys=ON;
+CREATE TABLE IF NOT EXISTS projects(id TEXT PRIMARY KEY,title TEXT NOT NULL,authority TEXT NOT NULL DEFAULT '',location TEXT NOT NULL DEFAULT '',summary TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'research',synthetic INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS sources(id TEXT PRIMARY KEY,project_id TEXT NOT NULL,publisher TEXT NOT NULL,url TEXT NOT NULL,source_class TEXT NOT NULL,retrieved_at TEXT NOT NULL,sha256 TEXT NOT NULL DEFAULT '',FOREIGN KEY(project_id) REFERENCES projects(id));
+CREATE TABLE IF NOT EXISTS claims(id TEXT PRIMARY KEY,project_id TEXT NOT NULL,claim_type TEXT NOT NULL,publication_state TEXT NOT NULL,text TEXT NOT NULL,source_url TEXT NOT NULL,publisher TEXT NOT NULL DEFAULT '',passage TEXT NOT NULL DEFAULT '',page_ref TEXT NOT NULL DEFAULT '',reviewer TEXT NOT NULL DEFAULT '',reviewed_at TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,FOREIGN KEY(project_id) REFERENCES projects(id));
+CREATE TABLE IF NOT EXISTS gaps(id TEXT PRIMARY KEY,project_id TEXT NOT NULL,document_name TEXT NOT NULL,search_scope TEXT NOT NULL,searched_at TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'not_located',created_at TEXT NOT NULL,FOREIGN KEY(project_id) REFERENCES projects(id));
+CREATE TABLE IF NOT EXISTS responses(id TEXT PRIMARY KEY,project_id TEXT NOT NULL,responder TEXT NOT NULL,text TEXT NOT NULL,source_url TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,FOREIGN KEY(project_id) REFERENCES projects(id));
+CREATE TABLE IF NOT EXISTS audit_events(id INTEGER PRIMARY KEY AUTOINCREMENT,actor TEXT NOT NULL,action TEXT NOT NULL,object_type TEXT NOT NULL,object_id TEXT NOT NULL,detail TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_claims_project ON claims(project_id);
+CREATE INDEX IF NOT EXISTS idx_gaps_project ON gaps(project_id);
+CREATE INDEX IF NOT EXISTS idx_audit_object ON audit_events(object_type,object_id);

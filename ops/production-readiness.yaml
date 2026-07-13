@@ -1,0 +1,43 @@
+version: 1
+release_label: alpha
+checks:
+  - id: build.clean_clone
+    owner: release
+    status: pending
+    evidence: null
+  - id: evidence.unsupported_publication_blocked
+    owner: evidence
+    status: pending
+    evidence: null
+  - id: auth.oidc_mfa_roles
+    owner: security
+    status: pending
+    evidence: null
+  - id: storage.quarantine_scan_redaction
+    owner: security
+    status: pending
+    evidence: null
+  - id: privacy.public_allowlist
+    owner: privacy
+    status: pending
+    evidence: null
+  - id: recovery.backup_restore_rpo_rto
+    owner: operations
+    status: pending
+    evidence: null
+  - id: observability.alert_reaches_human
+    owner: operations
+    status: pending
+    evidence: null
+  - id: editorial.two_launch_dossiers_two_reviewers
+    owner: editorial
+    status: pending
+    evidence: null
+  - id: legal.policies_and_source_terms
+    owner: operator
+    status: pending
+    evidence: null
+  - id: adoption.three_design_partners
+    owner: product
+    status: pending
+    evidence: null

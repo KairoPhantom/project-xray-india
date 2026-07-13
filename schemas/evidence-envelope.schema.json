@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectxray.in/schemas/evidence-envelope.schema.json",
+  "title": "Evidence Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "artifact_sha256",
+    "retrieved_at",
+    "source",
+    "derivation",
+    "anchors"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ev_[A-Za-z0-9_-]+$"
+    },
+    "artifact_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "retrieved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "publisher",
+        "source_class"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "publisher": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_class": {
+          "enum": [
+            "primary_official_record",
+            "official_statement",
+            "independent_technical",
+            "reputable_reporting",
+            "public_submission"
+          ]
+        }
+      }
+    },
+    "derivation": {
+      "type": "object",
+      "required": [
+        "kind",
+        "tool",
+        "version"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "original",
+            "snapshot",
+            "ocr",
+            "extraction",
+            "redaction",
+            "translation"
+          ]
+        },
+        "tool": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "parent_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "anchors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "page",
+          "text"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "text": {
+            "type": "string"
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
