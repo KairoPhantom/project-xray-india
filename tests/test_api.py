@@ -55,5 +55,11 @@ class TestCore(unittest.TestCase):
   pid,src,_=self.create_project_source_claim();doc={'source_id':src,'filename':'fixture.pdf','media_type':'application/pdf','size_bytes':128,'sha256':'b'*64}
   s,r,_=self.req(f'/api/projects/{pid}/documents','POST',doc,'test-admin-secret-long-enough');self.assertEqual(s,201);self.assertEqual(r['storage_state'],'quarantined')
   self.assertEqual(self.req(f'/api/projects/{pid}/documents','POST',doc,'test-admin-secret-long-enough')[0],409)
+ def test_correction_requires_fresh_two_person_review(self):
+  pid,_,cid=self.create_project_source_claim();self.req(f'/api/projects/{pid}/claims/{cid}/reviews','POST',{'decision':'approve'},'review-token-a');self.req(f'/api/projects/{pid}/claims/{cid}/reviews','POST',{'decision':'approve'},'review-token-b');self.req(f'/api/projects/{pid}/claims/{cid}/publish','POST',{},'test-admin-secret-long-enough')
+  corrected=self.req(f'/api/projects/{pid}/claims/{cid}/correct','POST',{'text':'Corrected synthetic claim','reason':'Synthetic correction fixture'},'test-admin-secret-long-enough')[1];self.assertEqual(corrected['publication_state'],'candidate')
+  self.assertEqual(self.req(f'/api/projects/{pid}/claims/{cid}/publish','POST',{},'test-admin-secret-long-enough')[0],409)
+  self.req(f'/api/projects/{pid}/claims/{cid}/reviews','POST',{'decision':'approve'},'review-token-a');self.req(f'/api/projects/{pid}/claims/{cid}/reviews','POST',{'decision':'approve'},'review-token-b')
+  self.assertEqual(self.req(f'/api/projects/{pid}/claims/{cid}/publish','POST',{},'test-admin-secret-long-enough')[1]['publication_state'],'corrected')
  def test_health_and_ready(self):self.assertEqual(self.req('/health')[0],200);self.assertEqual(self.req('/ready')[0],200)
 if __name__=='__main__':unittest.main()

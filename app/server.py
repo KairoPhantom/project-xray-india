@@ -180,7 +180,15 @@ class H(BaseHTTPRequestHandler):
      if role!='admin':return self.out({'error':'admin required'},403)
      cid=seg[4];claim=c.execute('SELECT * FROM claims WHERE id=? AND project_id=?',(cid,pid)).fetchone();approvals=c.execute("SELECT COUNT(*) n FROM claim_reviews WHERE claim_id=? AND decision='approve'",(cid,)).fetchone()['n']
      if not claim or approvals<2:return self.out({'error':'two independent approvals required'},409)
-     c.execute("UPDATE claims SET publication_state='published',updated_at=? WHERE id=?",(now(),cid));audit(c,actor,'publish','claim',cid,'project='+pid);return self.out({'id':cid,'publication_state':'published'})
+     revised=c.execute('SELECT 1 FROM claim_revisions WHERE claim_id=? LIMIT 1',(cid,)).fetchone();state='corrected' if revised else 'published'
+     c.execute('UPDATE claims SET publication_state=?,updated_at=? WHERE id=?',(state,now(),cid));audit(c,actor,'publish','claim',cid,'project='+pid);return self.out({'id':cid,'publication_state':state})
+    if kind=='claims' and len(seg)==6 and valid_id(seg[4],'clm') and seg[5]=='correct':
+     if role!='admin':return self.out({'error':'admin required'},403)
+     cid=seg[4];claim=c.execute('SELECT * FROM claims WHERE id=? AND project_id=?',(cid,pid)).fetchone()
+     if not claim or claim['publication_state'] not in PUBLIC_STATES:return self.out({'error':'only public claims can be corrected'},409)
+     new_text=clean_text(d.get('text',''),8000,True);reason=clean_text(d.get('reason',''),1000,True)
+     if new_text==claim['text']:return self.out({'error':'correction must change claim text'},400)
+     rid=uid('crv');c.execute('INSERT INTO claim_revisions VALUES(?,?,?,?,?,?,?)',(rid,cid,claim['text'],new_text,reason,actor,now()));c.execute('DELETE FROM claim_reviews WHERE claim_id=?',(cid,));c.execute("UPDATE claims SET text=?,publication_state='candidate',updated_at=? WHERE id=?",(new_text,now(),cid));audit(c,actor,'correct','claim',cid,reason);return self.out({'id':cid,'revision_id':rid,'publication_state':'candidate'})
     if kind=='gaps' and len(seg)==4:
      if role!='admin':return self.out({'error':'admin required'},403)
      oid=uid('gap');c.execute('INSERT INTO gaps VALUES(?,?,?,?,?,?,?)',(oid,pid,clean_text(d.get('document_name',''),300,True),clean_text(d.get('search_scope',''),2000,True),clean_text(d.get('searched_at',now()),64,True),d.get('status','not_located'),now()));audit(c,actor,'create','gap',oid,'project='+pid);return self.out({'id':oid},201)
