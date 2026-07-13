@@ -13,5 +13,5 @@ CREATE TABLE gaps(id TEXT,project_id TEXT,document_name TEXT,search_scope TEXT,s
 CREATE TABLE responses(id TEXT,project_id TEXT,responder TEXT,text TEXT,source_url TEXT,created_at TEXT);
 ''');c.execute("INSERT INTO projects VALUES('prj_aaaaaaaaaaaaaaaa','Legacy','','','','published',1,'t','t')");c.execute("INSERT INTO claims VALUES('clm_aaaaaaaaaaaaaaaa','prj_aaaaaaaaaaaaaaaa','official_claim','published','Legacy text','https://example.invalid/legacy','Publisher','Passage','','reviewer','t','t')");c.commit();c.close()
    result=migrate(p);self.assertEqual(result['status'],'migrated');self.assertTrue(result['claims_demoted_to_candidate']);self.assertTrue(Path(str(p)+'.pre-v2.bak').exists())
-   c=sqlite3.connect(p);self.assertEqual(c.execute('SELECT publication_state FROM claims').fetchone()[0],'candidate');self.assertEqual(c.execute('PRAGMA user_version').fetchone()[0],2);c.close()
+   c=sqlite3.connect(p);self.assertEqual(c.execute('SELECT publication_state FROM claims').fetchone()[0],'candidate');self.assertEqual(c.execute('PRAGMA user_version').fetchone()[0],3);c.close()
 if __name__=='__main__':unittest.main()

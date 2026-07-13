@@ -19,7 +19,7 @@ def migrate(path):
    key=(r['project_id'],url);sid=source_by_key.get(key)
    if not sid:
     sid=uid('src');source_by_key[key]=sid;created=r['created_at'];new.execute('INSERT INTO sources VALUES(?,?,?,?,?,?,?,?,?,?)',(sid,r['project_id'],r['publisher'] or 'Legacy import',url,'legacy_import',created,hashlib.sha256(url.encode()).hexdigest(),r['passage'],r['page_ref'],created))
-   new.execute('INSERT INTO claims VALUES(?,?,?,?,?,?,?,?,?,?,?)',(r['id'],r['project_id'],sid,r['claim_type'],'candidate',r['text'],r['passage'],r['page_ref'],'legacy-migration',r['created_at'],r['created_at']))
+   new.execute('INSERT INTO claims VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',(r['id'],r['project_id'],sid,r['claim_type'],'candidate',r['text'],r['passage'],r['page_ref'],'legacy-migration',1,r['created_at'],r['created_at']))
   for r in old.execute('SELECT * FROM gaps'):new.execute('INSERT INTO gaps VALUES(?,?,?,?,?,?,?)',tuple(r))
   for r in old.execute('SELECT * FROM responses'):new.execute('INSERT INTO responses VALUES(?,?,?,?,?,?)',(r['id'],r['project_id'],r['responder'],r['text'],None,r['created_at']))
   new.commit();check=new.execute('PRAGMA integrity_check').fetchone()[0]
