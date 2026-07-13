@@ -1,5 +1,19 @@
 # Release notes
 
+## v0.3.0 — transactional production hardening
+
+- Serialized review/correction/publication transitions with claim-version binding and concurrency tests.
+- Credential expiry, revocation and atomic rotation; production bearer tokens disabled.
+- Fresh MFA-marked, HMAC-authenticated OIDC gateway assertions.
+- Production idempotency-key requirement and replay/conflict handling.
+- Externally keyed per-event audit checkpoints and fork/tamper detection.
+- Quarantine blocks publication until a separate scanner role records a clean result.
+- Atomic v2→v3 migration plus authenticated pre-migration backups.
+- Authenticated backup manifests, audit-aware clean restore and signed RPO/RTO evidence.
+- Signed S3-compatible object verification and authenticated monitoring webhooks.
+- 23 automated tests plus restart/restore smoke verification.
+
+
 ## v0.2.0 — hardened public beta (14 July 2026)
 
 ### Added

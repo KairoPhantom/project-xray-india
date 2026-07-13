@@ -23,8 +23,14 @@ Project X-Ray does **not** determine whether a person or organization is corrupt
 - Generate a downloadable evidence report and draft RTI request.
 - SQLite persistence and database initialization.
 - JSON API and responsive public dashboard.
-- Security headers, body/rate limits, hash-chained immutable audit events, health/readiness endpoints.
-- Tested restart persistence, backup/restore, legacy migration and end-to-end smoke path.
+- Race-safe `BEGIN IMMEDIATE` publication, correction and review transitions.
+- Expiring, revocable and rotatable credentials stored only as peppered digests.
+- Production OIDC/MFA gateway assertions with freshness and HMAC verification.
+- Idempotency/replay protection for writes and version-bound two-person review.
+- Externally keyed audit checkpoints that detect database-chain forks.
+- Fail-closed document quarantine with a separate scanner role.
+- Signed managed-storage verification, monitoring webhooks and recovery evidence.
+- Authenticated backup manifests, atomic migrations and restart/restore smoke path.
 - Unit tests, release checks, reproducible SBOM/checksums, Docker image and CI templates.
 
 ## Quick start
@@ -41,6 +47,8 @@ Run tests:
 python3 -m unittest discover -s tests -v
 python3 scripts/check_release.py
 python3 scripts/smoke_e2e.py
+# Production contract and required evidence:
+# docs/PRODUCTION_DEPLOYMENT.md
 ```
 
 Run with Docker:

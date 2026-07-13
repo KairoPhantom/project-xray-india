@@ -34,3 +34,18 @@
 **Date:** 2026-07-14
 **Decision:** Do not label the reference SQLite/token deployment v1 production.
 **Reason:** OIDC/MFA, managed storage, deployment security, human editorial review and legal/operational ownership require real operator evidence.
+
+## ADR-008 — Version-bound transactional publication
+**Date:** 2026-07-14
+**Decision:** Serialize state transitions with `BEGIN IMMEDIATE`; bind approvals to claim versions and make publication idempotent.
+**Reason:** Concurrent corrections and approvals must never publish stale or partially reviewed evidence.
+
+## ADR-009 — External trust anchors
+**Date:** 2026-07-14
+**Decision:** Authenticate audit checkpoints, backups, monitoring events and recovery evidence with keys held outside the database.
+**Reason:** An internally rehashed database fork is not detectable without an external secret or signature.
+
+## ADR-010 — Production identity and storage boundaries
+**Date:** 2026-07-14
+**Decision:** Disable bearer authentication in production, require fresh MFA-marked gateway assertions, verify managed-object metadata, and keep evidence quarantined until an independent scanner clears it.
+**Reason:** Production safety depends on fail-closed boundaries, not operator convention.

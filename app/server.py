@@ -8,9 +8,13 @@ from datetime import datetime,timezone,timedelta
 try:
  from app.security import token_hash,verify_proxy
  from app.audit import append as append_audit,verify as verify_audit
+ from app.storage import verify_managed_object
+ from app.operations import send_alert
 except ModuleNotFoundError:
  from security import token_hash,verify_proxy
  from audit import append as append_audit,verify as verify_audit
+ from storage import verify_managed_object
+ from operations import send_alert
 
 ROOT=Path(__file__).resolve().parents[1];DB=Path(os.getenv('DB_PATH',str(ROOT/'data/project_xray.db')))
 PORT=int(os.getenv('PORT','8080'));MAX=int(os.getenv('MAX_BODY_BYTES','2097152'));ENV=os.getenv('APP_ENV','development')
@@ -40,7 +44,7 @@ def bootstrap(c,principal,role,secret,ttl=86400):
  c.execute('INSERT OR IGNORE INTO auth_tokens(id,principal,role,token_hash,expires_at,created_at) VALUES(?,?,?,?,?,?)',(uid('tok'),principal,role,h,expires,created))
 def init():
  if ENV=='production':
-  required=[('PUBLIC_BASE_URL',PUBLIC_BASE_URL.startswith('https://')),('TOKEN_PEPPER',len(TOKEN_PEPPER)>=32),('AUDIT_HMAC_KEY',len(AUDIT_KEY)>=32),('BACKUP_HMAC_KEY',len(BACKUP_KEY)>=32),('OIDC_PROXY_SECRET',len(OIDC_SECRET)>=32),('OBJECT_STORAGE_MODE',os.getenv('OBJECT_STORAGE_MODE')=='managed'),('STORAGE_BUCKET',bool(os.getenv('STORAGE_BUCKET')))]
+  required=[('PUBLIC_BASE_URL',PUBLIC_BASE_URL.startswith('https://')),('TOKEN_PEPPER',len(TOKEN_PEPPER)>=32),('AUDIT_HMAC_KEY',len(AUDIT_KEY)>=32),('BACKUP_HMAC_KEY',len(BACKUP_KEY)>=32),('OIDC_PROXY_SECRET',len(OIDC_SECRET)>=32),('OBJECT_STORAGE_MODE',os.getenv('OBJECT_STORAGE_MODE')=='managed'),('STORAGE_BUCKET',bool(os.getenv('STORAGE_BUCKET'))),('STORAGE_ACCESS_KEY',bool(os.getenv('STORAGE_ACCESS_KEY'))),('STORAGE_SECRET_KEY',bool(os.getenv('STORAGE_SECRET_KEY'))),('MONITORING_WEBHOOK_URL',bool(os.getenv('MONITORING_WEBHOOK_URL'))),('MONITORING_WEBHOOK_SECRET',len(os.getenv('MONITORING_WEBHOOK_SECRET',''))>=32)]
   missing=[name for name,ok in required if not ok]
   if missing:raise RuntimeError('production configuration missing/unsafe: '+','.join(missing))
  with db(True) as c:
@@ -185,6 +189,11 @@ class H(BaseHTTPRequestHandler):
   if not self.reserve_idempotency(actor,data):return
   path=urlparse(self.path).path;seg=[x for x in path.split('/') if x]
   try:
+   if path=='/api/operations/test-alert':
+    if role!='admin':return self.out({'error':'admin required'},403)
+    receipt=send_alert({'severity':'test','summary':'Project X-Ray monitoring path test','request_id':self.request_id})
+    with db(True) as c:
+     self.tx=c;audit(c,actor,'test','monitoring_alert',receipt['event_id']);return self.out({'delivered':True,'event_id':receipt['event_id']})
    with db(True) as c:
     self.tx=c
     if path=='/api/auth/tokens':
@@ -217,7 +226,10 @@ class H(BaseHTTPRequestHandler):
      sha=clean(data.get('sha256',''),64,True).lower();media=clean(data.get('media_type',''),100,True);size=int(data.get('size_bytes',-1));sid=data.get('source_id') or None;uri=clean(data.get('storage_uri',''),1000)
      if not re.fullmatch(r'[a-f0-9]{64}',sha) or media not in {'application/pdf','text/plain','text/csv','application/json','image/png','image/jpeg'} or not 0<=size<=MAX:return self.out({'error':'invalid document metadata'},400)
      if sid and not source(c,sid):return self.out({'error':'source not found'},400)
-     if ENV=='production' and not uri.startswith('s3://'+os.getenv('STORAGE_BUCKET','')+'/'):return self.out({'error':'managed storage URI required'},400)
+     if ENV=='production':
+      if not uri.startswith('s3://'+os.getenv('STORAGE_BUCKET','')+'/'):return self.out({'error':'managed storage URI required'},400)
+      try:verify_managed_object(uri,sha,size)
+      except Exception as e:return self.out({'error':'managed object verification failed','detail':str(e)},409)
      did=uid('doc');c.execute('INSERT INTO documents(id,project_id,source_id,filename,media_type,size_bytes,sha256,storage_state,scan_result,storage_uri,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',(did,pid,sid,clean(data.get('filename',''),255,True),media,size,sha,'quarantined','pending',uri,now()));audit(c,actor,'create','document',did,'project='+pid);return self.out({'id':did,'storage_state':'quarantined'},201)
     if kind=='documents' and len(seg)==6 and valid_id(seg[4],'doc') and seg[5]=='scan':
      if role!='scanner':return self.out({'error':'scanner role required'},403)

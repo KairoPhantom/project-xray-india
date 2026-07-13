@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import argparse,hashlib,json,shutil,sqlite3,sys,uuid
+import argparse,hashlib,json,shutil,sqlite3,sys,uuid,os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];SCHEMA=(ROOT/'db/schema.sql').read_text()
+ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT));SCHEMA=(ROOT/'db/schema.sql').read_text()
+from app.manifest import create as create_manifest
 def uid(p):return p+'_'+uuid.uuid4().hex[:16]
 def migrate(path):
  path=Path(path);backup=path.with_suffix(path.suffix+'.pre-v2.bak');tmp=path.with_suffix(path.suffix+'.v2.tmp')
@@ -10,7 +11,7 @@ def migrate(path):
  cols={r['name'] for r in old.execute('PRAGMA table_info(sources)')}
  if 'created_at' in cols:return {'status':'already_v2','database':str(path)}
  if backup.exists() or tmp.exists():raise FileExistsError('migration artifacts already exist; inspect them before retrying')
- shutil.copy2(path,backup);new=sqlite3.connect(tmp);new.row_factory=sqlite3.Row;new.executescript(SCHEMA)
+ shutil.copy2(path,backup);os.chmod(backup,0o600);create_manifest(backup.with_suffix(backup.suffix+'.manifest.json'),backup,os.getenv('BACKUP_HMAC_KEY','development-backup-key-not-for-production'),{'schema_version':1,'purpose':'pre-v3-migration'});new=sqlite3.connect(tmp);new.row_factory=sqlite3.Row;new.executescript(SCHEMA)
  try:
   for r in old.execute('SELECT * FROM projects'):new.execute('INSERT INTO projects VALUES(?,?,?,?,?,?,?,?,?)',tuple(r))
   source_by_key={}
