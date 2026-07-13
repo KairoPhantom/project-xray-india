@@ -32,7 +32,12 @@ def init():
  if ENV=='production':
   if ADMIN_TOKEN in ('','change-before-deploy') or len(ADMIN_TOKEN)<24:raise RuntimeError('production requires a strong ADMIN_TOKEN')
   if not PUBLIC_BASE_URL.startswith('https://'):raise RuntimeError('production requires an HTTPS PUBLIC_BASE_URL')
- with db() as c:c.executescript((ROOT/'db/schema.sql').read_text())
+ with db() as c:
+  legacy=c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='sources'").fetchone()
+  if legacy:
+   columns={r['name'] for r in c.execute('PRAGMA table_info(sources)')}
+   if 'created_at' not in columns:raise RuntimeError('legacy v1 database detected; run: python3 scripts/migrate_legacy.py')
+  c.executescript((ROOT/'db/schema.sql').read_text())
 def rows(cur):return [dict(x) for x in cur.fetchall()]
 def digest(value):return hashlib.sha256(value.encode()).hexdigest()
 def audit(c,actor,action,typ,oid,detail=''):

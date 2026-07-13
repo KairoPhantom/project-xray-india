@@ -37,3 +37,4 @@ CREATE INDEX IF NOT EXISTS idx_claim_reviews_claim ON claim_reviews(claim_id);
 CREATE INDEX IF NOT EXISTS idx_gaps_project ON gaps(project_id);
 CREATE INDEX IF NOT EXISTS idx_responses_project ON responses(project_id);
 CREATE INDEX IF NOT EXISTS idx_audit_object ON audit_events(object_type,object_id);
+PRAGMA user_version=2;
