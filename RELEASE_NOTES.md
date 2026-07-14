@@ -1,5 +1,16 @@
 # Release notes
 
+## v0.4.0 — public projection and abuse-control hardening
+
+- Added an explicit allowlisted public dossier projection so anonymous reads cannot leak reviewer-only or quarantine/internal fields.
+- Added regression tests that prove public bundles exclude raw source/document tables and internal claim metadata.
+- Replaced the single in-memory write limiter with route-aware public/auth/write/expensive-write quotas.
+- Added optional proxy-aware client identification via `TRUST_PROXY_HEADERS=1` for trusted reverse-proxy deployments.
+- Expanded Prometheus metrics for rate-limit, idempotency replay/conflict, and quarantine-block visibility.
+- Updated the security workflow to use the MIT-licensed gitleaks CLI directly instead of the licensed GitHub action.
+- Automated verification now covers 26 tests, browser acceptance, smoke path, release checks, and repeat loop runs.
+- Added downloadable evidence capsules plus `scripts/verify_capsule.py` for offline public-verification flows.
+
 ## v0.3.0 — transactional production hardening
 
 - Serialized review/correction/publication transitions with claim-version binding and concurrency tests.
@@ -12,7 +23,6 @@
 - Authenticated backup manifests, audit-aware clean restore and signed RPO/RTO evidence.
 - Signed S3-compatible object verification and authenticated monitoring webhooks.
 - 23 automated tests plus restart/restore smoke verification.
-
 
 ## v0.2.0 — hardened public beta (14 July 2026)
 
