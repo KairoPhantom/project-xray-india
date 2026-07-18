@@ -17,7 +17,7 @@ jobs:
       - name: Install Python dependencies
         run: python3 -m pip install --requirement requirements.txt
       - name: Setup Node
-        uses: actions/setup-node@cdca7365b2dadb8f86be6bf9e80b7c93a7c4457d
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '20'
       - name: Install Node dependencies
