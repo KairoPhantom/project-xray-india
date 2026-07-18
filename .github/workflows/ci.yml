@@ -28,6 +28,7 @@ jobs:
         run: |
           python3 scripts/check_iac_contract.py
           python3 scripts/check_workflow_security.py
+          python3 scripts/check_grype_exceptions.py
       - name: Synthetic production rehearsal
         run: python3 scripts/rehearse_production.py
       - name: Synthetic smoke

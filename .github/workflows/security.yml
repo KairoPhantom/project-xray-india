@@ -26,6 +26,8 @@ jobs:
           for value in "$GITLEAKS_DIGEST" "$TRIVY_DIGEST" "$SYFT_DIGEST" "$GRYPE_DIGEST"; do
             [[ "$value" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo 'scanner image digest is missing or invalid'; exit 1; }
           done
+      - name: Validate Grype exception file
+        run: python3 scripts/check_grype_exceptions.py
       - name: Secret scan
         env:
           DIGEST: ${{ vars.GITLEAKS_IMAGE_DIGEST }}
@@ -47,10 +49,12 @@ jobs:
       - name: Scan candidate image
         env:
           DIGEST: ${{ vars.GRYPE_IMAGE_DIGEST }}
-        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "anchore/grype@$DIGEST" project-xray:security-${GITHUB_SHA} --fail-on high
+        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/repo" "anchore/grype@$DIGEST" project-xray:security-${GITHUB_SHA} --fail-on high --config /repo/.grype.yaml
       - name: Record SBOM digest
+        if: always()
         run: sha256sum sbom.cdx.json | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Upload SBOM artifact
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: sbom-cyclonedx-${{ github.sha }}

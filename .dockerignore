@@ -37,3 +37,6 @@ scripts/fixtures/
 .trivyignore
 .gitleaks.toml
 .gitleaksignore
+.grype.yaml
+security/
+docs/security/
