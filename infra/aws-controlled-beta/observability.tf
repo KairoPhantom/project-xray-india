@@ -1,6 +1,6 @@
 resource "aws_sns_topic" "operations" {
   name              = "${local.name}-operations"
-  kms_master_key_id = "alias/aws/sns"
+  kms_master_key_id = aws_kms_key.custody.arn
 }
 resource "aws_sns_topic_subscription" "email" {
   topic_arn = aws_sns_topic.operations.arn
